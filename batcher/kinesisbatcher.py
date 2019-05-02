@@ -1,35 +1,22 @@
-# This module has helper functions to format data into Kinesis
+# This module batches data into optimal size batches for Kinesis.
+# Kinesis has the following input constraints:
+#    - the maximum size of one record is 1 MB
+#    - the maximum size of all records in one batch is 5 MB
+#    - maximum number of records in a batch is 500
+#
+#
+# The batch_data takes in an array of records and 
+# returns an iterator over optimal batches.
+# Records are kept in the same order that they are
+# in the original array.
 
-
-# Constraints:
-# 
-# Takes in an array of arrays
-# Returns an array of arrays
-# Max size of output array 1 MB
-# Max size of output batch is 5 MB
-# maximum number of records in an output batch is 500
-# 
-
-
-
-# Arrays sent in the same order as they are received
-# So we have to monitor the size and count of the batch continuously
-# We have to look maybe if adding the next record to the batch would cause
-# for the size to be too large
-
-# If they are sent to AWS there's an issue that sending of a record in the
-# batch could fail and then the result would no longer be in the same order..
 
 ALLOWED_FORMATTING_VALUES = ["string", "json"]
 
 
 class KinesisBatcher:
 
-
-	# TODO should we keep track of almost filled records for optimizing?
-	# No because then they would not stay in the same order
-
-	def __init__(self, record_max_size=10, batch_max_size=50, max_records_per_batch=5, formatting="string"):
+	def __init__(self, formatting="string", record_max_size=10, batch_max_size=50, max_records_per_batch=5):
 		self.unmodified_data = []
 		self.record_max_size = record_max_size
 		self.batch_max_size = batch_max_size
@@ -46,6 +33,11 @@ class KinesisBatcher:
 		return self.get_record_size(record) > self.record_max_size
 
 	def get_data(self, data):
+		'''
+		Iterate over the given array. If array item is too
+		large (would go over Kinesis' record size limit), discard it.
+
+		'''
 
 		for d in data:
 			print("Now getting next item")
@@ -65,6 +57,12 @@ class KinesisBatcher:
 		return
 
 	def get_record_size(self, record):
+		'''
+		Return size of the given record. If records are in json format, 
+		check that PartitionKey(Unicode string) and Data(bytes) together do not
+		exceed the maximum payload size. If records are strings, we just
+		check the size of the string.
+		'''
 		
 
 		if self.format == "json":
@@ -79,9 +77,11 @@ class KinesisBatcher:
 			return len(record.encode("utf-8"))
 
 	def batch_data(self, data):
-		print("Starting batch operations...")
+		'''
+		Batches the given data according to KinesisBatcher's constraints. Returns an iterator over the batches,
+		that is, each iteration returns a batch (an array).
+		'''
 		batch = []
-		print(data)
 
 		data_for_batch = self.get_data(data)
 		current_batch_size = 0
@@ -91,11 +91,10 @@ class KinesisBatcher:
 
 			try:
 
-				print("Getting item from iterator...")
 				next_item = next(data_for_batch)
-				print(next_item)
+
 				if current_batch_size + self.get_record_size(next_item) > self.batch_max_size or current_records_in_batch == self.max_records_per_batch:
-					# This batch couldn't fit any more items, so return it
+					# This batch cannot fit any more items, so return it
 					yield batch
 
 					# Reset counters
