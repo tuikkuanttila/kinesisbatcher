@@ -30,7 +30,7 @@ batcher = KinesisBatcher()
 ~~~
 To specify json format
 ~~~
-batcher = KinesisBatcher(formatting="json")
+batcher = KinesisBatcher(input_format="json")
 ~~~
 This will expect the array to be batched to consist of dicts of
 type `{'Data' : b'data', 'PartitionKey' : string}`.
@@ -43,7 +43,9 @@ for batcher in batcher.batch_data(records):
 	put_records_to_stream(records)
 ~~~
 
-A complete example on how to use KinesisBatcher with boto3:
+A complete example on how to use KinesisBatcher with boto3 is below. Note
+that boto3 is not included with the library. You can install it via pip:
+`pip install boto3`
 
 ~~~
 import boto3

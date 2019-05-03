@@ -10,23 +10,24 @@
 # Records are kept in the same order that they are
 # in the original array.
 
+import sys
 
 ALLOWED_FORMATTING_VALUES = ["string", "json"]
 
 
 class KinesisBatcher:
 
-	def __init__(self, formatting="string", record_max_size=10, batch_max_size=50, max_records_per_batch=5):
+	def __init__(self, input_format="string", record_max_size=1000000, batch_max_size=5000000, max_records_per_batch=500):
 		self.unmodified_data = []
 		self.record_max_size = record_max_size
 		self.batch_max_size = batch_max_size
 		self.max_records_per_batch = max_records_per_batch
 		self.discarded = 0
 
-		if formatting not in ALLOWED_FORMATTING_VALUES:
-			raise ValueError("{} is not allowed as a format, allowed values are {}".format(formatting, ALLOWED_FORMATTING_VALUES))
+		if input_format not in ALLOWED_FORMATTING_VALUES:
+			raise ValueError("{} is not allowed as a format, allowed values are {}".format(input_format, ALLOWED_FORMATTING_VALUES))
 
-		self.format = formatting
+		self.input_format = input_format
 
 	def is_too_large(self, record):
 
@@ -36,16 +37,11 @@ class KinesisBatcher:
 		'''
 		Iterate over the given array. If array item is too
 		large (would go over Kinesis' record size limit), discard it.
+		:param data
 
 		'''
 
 		for d in data:
-			print("Now getting next item")
-			print(d)
-
-			#if not isinstance(d, str):
-			#	self.nonstring += 1
-			#	continue
 
 			if self.is_too_large(d):
 				# Simply discard items that are too large
@@ -65,7 +61,7 @@ class KinesisBatcher:
 		'''
 		
 
-		if self.format == "json":
+		if self.input_format == "json":
 			try:
 				return len(record["Data"]) + len(record["PartitionKey"].encode("utf-8"))
 			except KeyError:
@@ -73,7 +69,7 @@ class KinesisBatcher:
 			except AttributeError:
 				raise ValueError("Record {} invalid; Expected partition key to be string, data bytes".format(record))
 
-		elif self.format == "string":
+		elif self.input_format == "string":
 			return len(record.encode("utf-8"))
 
 	def batch_data(self, data):
@@ -114,15 +110,15 @@ class KinesisBatcher:
 				return
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
 
-	batcher = KinesisBatcher(["i", 2, "ii", "iii", "i", "i", "iw", "iasda", "a"])
-	iterator = batcher.batch_data()
-	print(next(iterator))
-	print(next(iterator))
+# 	batcher = KinesisBatcher(["i", 2, "ii", "iii", "i", "i", "iw", "iasda", "a"])
+# 	iterator = batcher.batch_data()
+# 	print(next(iterator))
+# 	print(next(iterator))
 
-	## Instead of initialising with data
-	# should we batcher = KinesisBatcher(maxdata=1)
-	# batcher.batch(["a", "b", "c"])
-	# for data in batcher.batch(["a", "b", "c"])
+# 	## Instead of initialising with data
+# 	# should we batcher = KinesisBatcher(maxdata=1)
+# 	# batcher.batch(["a", "b", "c"])
+# 	# for data in batcher.batch(["a", "b", "c"])
 

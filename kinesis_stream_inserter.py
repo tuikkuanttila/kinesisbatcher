@@ -2,7 +2,7 @@ import boto3
 import random
 import time
 
-from batcher import KinesisBatcher
+from kinesisbatcher import KinesisBatcher
 
 
 client = boto3.client('kinesis')
@@ -23,7 +23,7 @@ def get_random_sample_records():
 if __name__ == "__main__":
 
 	# Initialise batching code
-	batcher = KinesisBatcher(formatting="json", record_max_size=100, batch_max_size=500, max_records_per_batch=2)
+	batcher = KinesisBatcher(input_format="json", record_max_size=100, batch_max_size=500, max_records_per_batch=2)
 
 	while True:
 
