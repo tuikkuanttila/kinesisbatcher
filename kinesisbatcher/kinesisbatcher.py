@@ -17,12 +17,11 @@ ALLOWED_FORMATTING_VALUES = ["string", "json"]
 
 class KinesisBatcher:
 
-	def __init__(self, input_format="string", record_max_size=1000000, batch_max_size=5000000, max_records_per_batch=500):
+	def __init__(self, input_format="string", record_max_size=1048576, batch_max_size=5242880, max_records_per_batch=500):
 		self.unmodified_data = []
 		self.record_max_size = record_max_size
 		self.batch_max_size = batch_max_size
 		self.max_records_per_batch = max_records_per_batch
-		self.discarded = 0
 
 		if input_format not in ALLOWED_FORMATTING_VALUES:
 			raise ValueError("{} is not allowed as a format, allowed values are {}".format(input_format, ALLOWED_FORMATTING_VALUES))
@@ -37,7 +36,8 @@ class KinesisBatcher:
 		'''
 		Iterate over the given array. If array item is too
 		large (would go over Kinesis' record size limit), discard it.
-		:param data
+		:param data an array of strings or dicts with format {'Data' : b'data', 'PartitionKey' : 'k'}
+		:returns iterator over array
 
 		'''
 
@@ -45,7 +45,7 @@ class KinesisBatcher:
 
 			if self.is_too_large(d):
 				# Simply discard items that are too large
-				self.discarded += 1
+				print("WARNING: Discarding record going over size limit")
 				continue
 
 			yield d
@@ -105,7 +105,6 @@ class KinesisBatcher:
 			except StopIteration:
 
 				print("All data batched")
-				print("Discarded {} records that went over the max record size limit of {}".format(self.discarded, self.batch_max_size))
 				yield batch
 				return
 

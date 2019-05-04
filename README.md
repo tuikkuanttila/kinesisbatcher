@@ -97,6 +97,12 @@ if __name__ == "__main__":
 You can also define the batch limits yourself if that fits your use case, 
 in case you want smaller batches for example. For more details, see docs/docs.rst.
 
+Upcoming in the next version
+
+Inform the user on which records were discarded
+
+
+
 
 
 
