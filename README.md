@@ -59,7 +59,8 @@ import json
 from kinesisbatcher import KinesisBatcher
 
 def large_array():
-	# Generate test data from Helsinki region transit lines from https://www.avoindata.fi/data/en_GB/dataset/hsl-n-linjat
+	# Generate test data from Helsinki region transit lines 
+	# from https://www.avoindata.fi/data/en_GB/dataset/hsl-n-linjat
 	array = []
 	with open("tests/HSL_n_linjat.geojson", "rb") as f:
 		file_as_json = json.load(f)
@@ -150,6 +151,15 @@ For more details, see the module documentation in doc/kinesisbatcher.html
 ## Tests
 
 Pytest tests available in tests folder.
+
+~~~
+pip install pytest
+pytest
+
+~~~
+
+
+
 
 ## Upcoming in the next version
 
