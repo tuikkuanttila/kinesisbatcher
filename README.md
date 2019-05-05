@@ -15,6 +15,8 @@ for Kinesis writes while keeping the records in order and unmodified.
 It forms batches that are suitably sized and
 discards records that go over the 1 MiB limit.
 
+[1] https://docs.aws.amazon.com/kinesis/latest/APIReference/API_PutRecords.html
+
 ## Installation
 
 Using Pip:
@@ -170,4 +172,3 @@ Inform the user on which records were discarded.
 
 
 
-[1] https://docs.aws.amazon.com/kinesis/latest/APIReference/API_PutRecords.html
