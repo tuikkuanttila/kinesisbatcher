@@ -111,7 +111,10 @@ class KinesisBatcher:
 				raise ValueError("Record {} invalid; Expected partition key to be string, data bytes".format(record))
 
 		elif self.input_format == "string":
-			return len(record.encode("utf-8"))
+			try:
+				return len(record.encode("utf-8"))
+			except AttributeError:
+				raise ValueError("Record {} invalid; Expected record to be string".format(record))
 
 	def batch_data(self, data):
 		'''

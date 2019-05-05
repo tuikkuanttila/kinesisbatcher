@@ -21,7 +21,7 @@ Using Pip:
 
 pip install git+https://github.com/tuikkuanttila/kinesisbatcher.git#egg=kinesisbatcher
 
-
+Tested with Python 3.7, may work with earlier versions of Python 3 as well. 
 
 ## Usage
 
@@ -143,7 +143,7 @@ if __name__ == "__main__":
 
 ~~~
 
-For more details, see the module documentation at
+For more details, see the module documentation in doc/kinesisbatcher.html
 
 ## Upcoming in the next version
 

@@ -69,6 +69,7 @@ def array_of_jsons():
 def small_array_of_strings():
 	f = open("tests/HSL_n_linjat.geojson", "rb")
 	small_string = f.read(1000).decode('utf-8')
+	f.close()
 	return [small_string for i in range(1000)]
 
 def test_json_formatting(kinesisbatcher_json):
