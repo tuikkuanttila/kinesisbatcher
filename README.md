@@ -145,6 +145,10 @@ if __name__ == "__main__":
 
 For more details, see the module documentation in doc/kinesisbatcher.html
 
+## Tests
+
+Pytest tests available in tests folder.
+
 ## Upcoming in the next version
 
 Inform the user on which records were discarded.
