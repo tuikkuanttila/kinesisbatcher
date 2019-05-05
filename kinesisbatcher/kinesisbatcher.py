@@ -16,18 +16,25 @@ in the original array.
 
 
 class KinesisBatcher:
+	'''
+	Create a new instance of KinesisBatcher.
+
+	:param string input_format: The format the array records have, can be string or json for dicts of type {'Data' : b'data', 'PartitionKey' : 'k'}
+	:param int record_max_size: Maximum size for records to be accepted into the batch, in bytes. Default 1048576, Kinesis' limit. Cannot be greater than 1048576.
+	:param int batch_max_size: Maximum size of batch in total, in bytes. Default 5242880, Kinesis' limit. Cannot be greater than 5242880.
+	:param int max_records_per_batch: Maximum number of records per batch. Default 500, Kinesis' limit. Cannot be greater than 500.
+	'''
 
 	def __init__(self, input_format="string", record_max_size=1048576, batch_max_size=5242880, max_records_per_batch=500):
 		'''
 		Create a new instance of KinesisBatcher.
-		:param input_format: The format the array records have, can be string or json for dicts of type {'Data' : b'data', 'PartitionKey' : 'k'}
-		:type input_format: string
-		:param record_max_size: Maximum size for records to be accepted into the batch, in bytes. Default 1048576, Kinesis' limit. Cannot be greater than 1048576.
-		:type record_max_size: int
-		:param batch_max_size: Maximum size of batch in total, in bytes. Default 5242880, Kinesis' limit. Cannot be greater than 5242880.
-		:param max_records_per_batch Maximum number of records per batch. Default 500, Kinesis' limit. Cannot be greater than 500.
+
+		:param string input_format: The format the array records have, can be string or json for dicts of type {'Data' : b'data', 'PartitionKey' : 'k'}
+		:param int record_max_size: Maximum size for records to be accepted into the batch, in bytes. Default 1048576, Kinesis' limit. Cannot be greater than 1048576.
+		:param int batch_max_size: Maximum size of batch in total, in bytes. Default 5242880, Kinesis' limit. Cannot be greater than 5242880.
+		:param int max_records_per_batch Maximum number of records per batch. Default 500, Kinesis' limit. Cannot be greater than 500.
 		:returns: A KinesisBatcher
-		:rtype: KinesisBatcher 
+		:rtype: kinesisbatcher.KinesisBatcher 
 		:raises ValueError: if initialisation values are invalid
 		'''
 
@@ -52,7 +59,8 @@ class KinesisBatcher:
 	def is_too_large(self, record):
 		'''
 		Checks whether record in array is too large, against the defined record_max_size
-		:param record: The record to check
+
+		:param str/dict record: The record to check
 		:returns: True or False
 		:rtype: bool
 		'''
@@ -63,8 +71,10 @@ class KinesisBatcher:
 		'''
 		Iterate over the given array. If array item is too
 		large (would go over Kinesis' record size limit), discard it.
-		:param data an array of strings or dicts with format {'Data' : b'data', 'PartitionKey' : 'k'}
+
+		:param list data: an array of strings or dicts with format {'Data' : b'data', 'PartitionKey' : 'k'}
 		:returns: iterator over array
+		:rtype: iterator
 
 		'''
 
@@ -85,7 +95,8 @@ class KinesisBatcher:
 		check that PartitionKey(Unicode string) and Data(bytes) together do not
 		exceed the maximum payload size. If records are strings, we just
 		check the size of the string.
-		:param record: Record to check
+
+		:param str/dict record: Record to check
 		:returns: Size of record in bytes
 		:rtype: int
 		'''
@@ -106,8 +117,10 @@ class KinesisBatcher:
 		'''
 		Batches the given data according to KinesisBatcher's constraints. Returns an iterator over the batches,
 		that is, each iteration returns a batch (an array).
-		:param data: An array to batch
+
+		:param list data: An array to batch
 		:returns: An iterator over the array, each iteration returning an optimal batch
+		:rtype: iterator
 		'''
 		batch = []
 

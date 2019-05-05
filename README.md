@@ -17,7 +17,11 @@ discards records that go over the 1 MiB limit.
 
 ## Installation
 
-pip install git+https://github.com/tuikkuanttila/kinesisbatcher/
+Using Pip:
+
+pip install git+https://github.com/tuikkuanttila/kinesisbatcher.git#egg=kinesisbatcher
+
+
 
 ## Usage
 
@@ -44,7 +48,9 @@ for batcher in batcher.batch_data(records):
 	put_records_to_stream(records)
 ~~~
 
-An example:
+## Examples
+
+### Example with string array
 ~~~
 
 import json
@@ -86,6 +92,7 @@ if __name__ == "__main__":
 
 ~~~
 
+### Example with boto3
 A complete example on how to use KinesisBatcher with boto3 is below. Note
 that boto3 is not included with the library. You can install it via pip:
 `pip install boto3`
