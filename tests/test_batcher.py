@@ -135,6 +135,36 @@ def test_splitting_stringarray_by_count(kinesisbatcher_string, small_array_of_st
 
 	assert len(b) == 500
 
+def test_ordering_of_array(kinesisbatcher_string):
+	'''
+	Test that batching returns the array in the order
+	it was given
+	'''
+	test_array = ["first", "second", "third", "fourth"]
+	b = next(kinesisbatcher_string.batch_data(test_array))
+
+	assert b[0] == "first"
+	assert b[1] == "second"
+	assert b[2] == "third"
+	assert b[3] == "fourth"
+
+def test_invalid_initialization():
+
+	with pytest.raises(ValueError) as excinfo:
+		batcher = KinesisBatcher(input_format="xml")
+	assert "is not allowed as a format" in str(excinfo.value)
+
+	with pytest.raises(ValueError) as excinfo:
+		batcher = KinesisBatcher(record_max_size=10000000)
+	assert "Maximum record size is 1048576 bytes" in str(excinfo.value)
+
+	with pytest.raises(ValueError) as excinfo:
+		batcher = KinesisBatcher(batch_max_size=10000000)
+	assert "Maximum batch size is 5242880 bytes" in str(excinfo.value)
+
+	with pytest.raises(ValueError) as excinfo:
+		batcher = KinesisBatcher(max_records_per_batch=10000000)
+	assert "Maximum records per batch is 500" in str(excinfo.value)						
 
 
 

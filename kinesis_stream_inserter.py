@@ -6,7 +6,7 @@ from kinesisbatcher import KinesisBatcher
 
 
 client = boto3.client('kinesis')
-
+import json
 
 def get_random_sample_records():
 
@@ -39,18 +39,49 @@ def oversize_array():
 			{'Data' : st, 'PartitionKey' : '6'}]
 	return arr
 
-if __name__ == "__main__":
-	#arr = big_array()
-	#print(len(arr[3]))
-	#js = {'Data' : arr[3], 'PartitionKey' : '123'}
-	#batch = [js]
 
-	batch = oversize_array()
-	response = client.put_records(
-	 		    Records=batch,
-	 		    StreamName='Tuikku-Dev-Stream'
-	 		)
-	print(response)
+import json
+from kinesisbatcher import KinesisBatcher
+
+def large_array():
+	array = []
+	with open("tests/HSL_n_linjat.geojson", "rb") as f:
+		file_as_json = json.load(f)
+		for feat in file_as_json["features"]:
+			record = json.dumps(feat)
+			array.append(record)
+	return array
+
+def send_to_kinesis(batch):
+
+	# Your own implementation
+	pass
+
+if __name__ == "__main__":
+
+	# 1199 items in array
+	array = large_array()
+	batcher = KinesisBatcher()
+
+	for batch in batcher.batch_data(array):
+		# batches are up to 500 items, up to 5 MB, individual records
+		# up to 1 MB in size
+		assert len(batch) <= 500
+		assert sum([len(record) for record in batch]) <= 5242880
+		assert len([x for x in batch if len(x) > 1048576]) == 0
+
+		# Now you could put this batch to Kinesis etc 
+		send_to_kinesis(batch)
+		
+
+
+
+	# batch = oversize_array()
+	# response = client.put_records(
+	#  		    Records=batch,
+	#  		    StreamName='Tuikku-Dev-Stream'
+	#  		)
+	# print(response)
 
 	# # Initialise batching code
 	# batcher = KinesisBatcher(input_format="json", record_max_size=100, batch_max_size=500, max_records_per_batch=2)

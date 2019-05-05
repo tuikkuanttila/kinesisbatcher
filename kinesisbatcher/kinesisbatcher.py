@@ -1,34 +1,61 @@
-# This module batches data into optimal size batches for Kinesis.
-# Kinesis has the following input constraints:
-#    - the maximum size of one record is 1 MB
-#    - the maximum size of all records in one batch is 5 MB
-#    - maximum number of records in a batch is 500
-#
-#
-# The batch_data takes in an array of records and 
-# returns an iterator over optimal batches.
-# Records are kept in the same order that they are
-# in the original array.
+'''
+KinesisBatcher batches data into optimal size batches for Kinesis.
+Kinesis has the following input constraints:
+   - the maximum size of one record is 1 MB
+   - the maximum size of all records in one batch is 5 MB
+   - maximum number of records in a batch is 500
 
-import sys
 
-ALLOWED_FORMATTING_VALUES = ["string", "json"]
+The batch_data takes in an array of records and 
+returns an iterator over optimal batches.
+Records are kept in the same order that they are
+in the original array.
+'''
+
+
 
 
 class KinesisBatcher:
 
 	def __init__(self, input_format="string", record_max_size=1048576, batch_max_size=5242880, max_records_per_batch=500):
-		self.unmodified_data = []
+		'''
+		Create a new instance of KinesisBatcher.
+		:param input_format: The format the array records have, can be string or json for dicts of type {'Data' : b'data', 'PartitionKey' : 'k'}
+		:type input_format: string
+		:param record_max_size: Maximum size for records to be accepted into the batch, in bytes. Default 1048576, Kinesis' limit. Cannot be greater than 1048576.
+		:type record_max_size: int
+		:param batch_max_size: Maximum size of batch in total, in bytes. Default 5242880, Kinesis' limit. Cannot be greater than 5242880.
+		:param max_records_per_batch Maximum number of records per batch. Default 500, Kinesis' limit. Cannot be greater than 500.
+		:returns: A KinesisBatcher
+		:rtype: KinesisBatcher 
+		:raises ValueError: if initialisation values are invalid
+		'''
+
+		if record_max_size > 1048576 or record_max_size < 0:
+			raise ValueError("Invalid record_max_size. Maximum record size is 1048576 bytes.")
+
+		if batch_max_size > 5242880 or batch_max_size < 0:
+			raise ValueError("Invalid batch_max_size. Maximum batch size is 5242880 bytes.")
+
+		if max_records_per_batch > 500 or max_records_per_batch < 0:
+			raise ValueError("Maximum records per batch is 500")
+
 		self.record_max_size = record_max_size
 		self.batch_max_size = batch_max_size
 		self.max_records_per_batch = max_records_per_batch
 
-		if input_format not in ALLOWED_FORMATTING_VALUES:
-			raise ValueError("{} is not allowed as a format, allowed values are {}".format(input_format, ALLOWED_FORMATTING_VALUES))
+		if input_format not in ["string", "json"]:
+			raise ValueError("{} is not allowed as a format, allowed values are string or json".format(input_format))
 
 		self.input_format = input_format
 
 	def is_too_large(self, record):
+		'''
+		Checks whether record in array is too large, against the defined record_max_size
+		:param record: The record to check
+		:returns: True or False
+		:rtype: bool
+		'''
 
 		return self.get_record_size(record) > self.record_max_size
 
@@ -37,7 +64,7 @@ class KinesisBatcher:
 		Iterate over the given array. If array item is too
 		large (would go over Kinesis' record size limit), discard it.
 		:param data an array of strings or dicts with format {'Data' : b'data', 'PartitionKey' : 'k'}
-		:returns iterator over array
+		:returns: iterator over array
 
 		'''
 
@@ -58,6 +85,9 @@ class KinesisBatcher:
 		check that PartitionKey(Unicode string) and Data(bytes) together do not
 		exceed the maximum payload size. If records are strings, we just
 		check the size of the string.
+		:param record: Record to check
+		:returns: Size of record in bytes
+		:rtype: int
 		'''
 		
 
@@ -76,6 +106,8 @@ class KinesisBatcher:
 		'''
 		Batches the given data according to KinesisBatcher's constraints. Returns an iterator over the batches,
 		that is, each iteration returns a batch (an array).
+		:param data: An array to batch
+		:returns: An iterator over the array, each iteration returning an optimal batch
 		'''
 		batch = []
 
@@ -107,17 +139,4 @@ class KinesisBatcher:
 				print("All data batched")
 				yield batch
 				return
-
-
-# if __name__ == "__main__":
-
-# 	batcher = KinesisBatcher(["i", 2, "ii", "iii", "i", "i", "iw", "iasda", "a"])
-# 	iterator = batcher.batch_data()
-# 	print(next(iterator))
-# 	print(next(iterator))
-
-# 	## Instead of initialising with data
-# 	# should we batcher = KinesisBatcher(maxdata=1)
-# 	# batcher.batch(["a", "b", "c"])
-# 	# for data in batcher.batch(["a", "b", "c"])
 

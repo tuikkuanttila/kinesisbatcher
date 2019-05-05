@@ -11,20 +11,21 @@ as large as 1 MiB, up to a limit of 5 MiB for the entire request,
 including the partition keys. [1]
 
 KinesisBatcher takes care of splitting your data into optimal batches
-for Kinesis writes while keeping the records in order. 
+for Kinesis writes while keeping the records in order and unmodified. 
 It forms batches that are suitably sized and
 discards records that go over the 1 MiB limit.
 
 ## Installation
 
-pip install git+https://github.com/tuikkuanttila/batcher.git
+pip install git+https://github.com/tuikkuanttila/kinesisbatcher/
 
 ## Usage
 
 To use the batcher, you first create an instance of KinesisBatcher
-and then call the batch_data method on it with your data. You can
-specify if your data is in string or json (dict) format. Default
-is string.
+and then call the batch_data method on it with your data. The method
+returns an iterator where each iteration returns a Kinesis-sized batch.
+You can specify if your data is in string or in the json format expected by
+Boto3. Default is string.
 ~~~
 batcher = KinesisBatcher()
 ~~~
@@ -43,6 +44,48 @@ for batcher in batcher.batch_data(records):
 	put_records_to_stream(records)
 ~~~
 
+An example:
+~~~
+
+import json
+from kinesisbatcher import KinesisBatcher
+
+def large_array():
+	# Generate test data from Helsinki region transit lines from https://www.avoindata.fi/data/en_GB/dataset/hsl-n-linjat
+	array = []
+	with open("tests/HSL_n_linjat.geojson", "rb") as f:
+		file_as_json = json.load(f)
+		for feat in file_as_json["features"]:
+			record = json.dumps(feat)
+			array.append(record)
+	return array
+
+def send_to_kinesis(batch):
+
+	# Your own implementation
+	pass
+
+if __name__ == "__main__":
+
+	# 1199 items in array
+	array = large_array()
+	batcher = KinesisBatcher()
+
+	for batch in batcher.batch_data(array):
+		# batches are up to 500 items, up to 5 MB, individual records
+		# up to 1 MB in size
+		assert len(batch) <= 500
+		assert sum([len(record) for record in batch]) <= 5242880
+		assert len([x for x in batch if len(x) > 1048576]) == 0
+
+		# Now you could put this batch to Kinesis etc 
+		send_to_kinesis(batch)
+
+
+
+
+~~~
+
 A complete example on how to use KinesisBatcher with boto3 is below. Note
 that boto3 is not included with the library. You can install it via pip:
 `pip install boto3`
@@ -52,7 +95,7 @@ import boto3
 import random
 import time
 
-from batcher import KinesisBatcher
+from kinesisbatcher import KinesisBatcher
 
 
 client = boto3.client('kinesis')
@@ -62,7 +105,7 @@ def get_random_sample_records():
 
 	records = []
 
-	for i in range(random.randint(1, 5)):
+	for i in range(random.randint(1, 500)):
 
 		partition_key = "partition-{}".format(i)
 		record = {'Data' : b'a string', 'PartitionKey' : partition_key}
@@ -72,8 +115,7 @@ def get_random_sample_records():
 
 if __name__ == "__main__":
 
-	# Initialise batching code
-	batcher = KinesisBatcher(formatting="json", record_max_size=100, batch_max_size=500, max_records_per_batch=2)
+	batcher = KinesisBatcher(input_format="json")
 
 	while True:
 
@@ -88,18 +130,17 @@ if __name__ == "__main__":
 			)
 			print(response)
 
-			# Check for errors, possibly re-send items
+			# Check for errors in response['FailedRecordCount'] and possibly re-send items
 
 		time.sleep(5)
 
 ~~~
 
-You can also define the batch limits yourself if that fits your use case, 
-in case you want smaller batches for example. For more details, see docs/docs.rst.
+For more details, see the module documentation at
 
-Upcoming in the next version
+## Upcoming in the next version
 
-Inform the user on which records were discarded
+Inform the user on which records were discarded.
 
 
 
