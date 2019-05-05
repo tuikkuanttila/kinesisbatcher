@@ -90,9 +90,6 @@ if __name__ == "__main__":
 		# Now you could put this batch to Kinesis etc 
 		send_to_kinesis(batch)
 
-
-
-
 ~~~
 
 ### Example with boto3
@@ -143,7 +140,6 @@ if __name__ == "__main__":
 			# Check for errors in response['FailedRecordCount'] and possibly re-send items
 
 		time.sleep(5)
-
 ~~~
 
 For more details, see the module documentation in doc/kinesisbatcher.html
@@ -155,7 +151,6 @@ Pytest tests available in tests folder.
 ~~~
 pip install pytest
 pytest
-
 ~~~
 
 
